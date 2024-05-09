@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Table(name = "city")
 @Getter
@@ -24,4 +26,7 @@ public class City {
     @ManyToOne
     @JoinColumn(name = "county_id")
     private County county;
+
+    @OneToMany(mappedBy = "city")
+    private List<User> userList;
 }

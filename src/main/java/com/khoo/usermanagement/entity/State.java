@@ -21,7 +21,7 @@ public class State {
     private String name;
 
     @OneToMany(mappedBy = "state")
-    private List<Address> addressList;
+    private List<User> userList;
 
     @OneToMany(mappedBy = "state", cascade = CascadeType.ALL)
     private List<County> countyList;

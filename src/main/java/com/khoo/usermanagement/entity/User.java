@@ -6,6 +6,8 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.Date;
 
 @Entity
@@ -21,11 +23,11 @@ public class User {
 
     @Column(name = "created_at")
     @CreationTimestamp
-    private Date createdAt;
+    private LocalDate createdAt;
 
     @Column(name = "updated_at")
     @UpdateTimestamp
-    private Date updatedAt;
+    private LocalDate updatedAt;
 
     @Column(name = "first_name")
     private String firstName;
@@ -36,8 +38,16 @@ public class User {
     @Column(name = "national_code")
     private String nationalCode;
 
-    @OneToOne
-    @JoinColumn(name = "address_id", referencedColumnName = "id")
-    private Address address;
+    @Column(name = "birth_date", nullable = false)
+    private LocalDate birthDate;
+
+    @ManyToOne
+    @JoinColumn(name = "city_id")
+    private City city;
+
+    public int getAge() {
+        LocalDate now = LocalDate.now();
+        return Period.between(birthDate, now).getYears();
+    }
 
 }

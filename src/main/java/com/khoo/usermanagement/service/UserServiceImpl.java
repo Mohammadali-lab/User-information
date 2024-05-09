@@ -5,6 +5,9 @@ import com.khoo.usermanagement.entity.User;
 import com.khoo.usermanagement.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.List;
+
 @Service
 public class UserServiceImpl implements UserService{
 
@@ -39,4 +42,18 @@ public class UserServiceImpl implements UserService{
         User user = findById(id);
         userRepository.delete(user);
     }
+
+    public List<Object[]> getNumberOfUsersPerCity() {
+        return userRepository.countUsersByCity();
+    }
+
+    @Override
+    public List<Object[]> numberOfUsersPerCityFilteredByAge(int age) {
+        LocalDate startDate = LocalDate.now().minusYears(age);
+        LocalDate endDate = startDate.plusYears(1);
+//        Date startDateParam = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+//        Date endDateParam = Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        return userRepository.countUsersByCityAndAge(startDate, endDate);
+    }
+
 }

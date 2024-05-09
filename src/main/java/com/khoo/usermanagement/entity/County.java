@@ -18,7 +18,7 @@ public class County {
     private Long id;
 
     @Column(name = "code")
-    private int code;
+    private String code;
 
     @Column(name = "name")
     private String name;
@@ -29,4 +29,7 @@ public class County {
 
     @OneToMany(mappedBy = "county", cascade = CascadeType.ALL)
     private List<City> city;
+
+    @OneToMany(mappedBy = "county")
+    private List<User> userList;
 }

@@ -5,6 +5,8 @@ import com.khoo.usermanagement.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -43,5 +45,16 @@ public class UserController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         userService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/count-per-city")
+    public List<Object[]> getNumberOfUsersByCity() {
+        return userService.getNumberOfUsersPerCity();
+    }
+
+    @GetMapping("/users/age/{age}")
+    public List<Object[]> getNumberOfUsersByCityAndAge(@PathVariable int age) {
+
+        return userService.numberOfUsersPerCityFilteredByAge(age);
     }
 }
