@@ -7,8 +7,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
-import java.util.Date;
 
 @Entity
 @Table(name = "user")
@@ -23,11 +23,11 @@ public class User {
 
     @Column(name = "created_at")
     @CreationTimestamp
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     @UpdateTimestamp
-    private LocalDate updatedAt;
+    private LocalDateTime updatedAt;
 
     @Column(name = "first_name")
     private String firstName;
@@ -40,6 +40,15 @@ public class User {
 
     @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
+
+    @Column(name = "is_admin")
+    private boolean isAdmin;
+
+    @Column(name = "is_confirmed")
+    private boolean isConfirmed;
+
+    @Column(name = "confirmed_code")
+    private String confirmedCode;
 
     @ManyToOne
     @JoinColumn(name = "city_id")

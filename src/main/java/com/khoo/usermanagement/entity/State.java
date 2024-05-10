@@ -20,8 +20,11 @@ public class State {
     @Column(name = "name")
     private String name;
 
-    @OneToMany(mappedBy = "state")
-    private List<User> userList;
+    @Column(name = "code")
+    private String code;
+
+//    @OneToMany(mappedBy = "state")
+//    private List<User> userList;
 
     @OneToMany(mappedBy = "state", cascade = CascadeType.ALL)
     private List<County> countyList;

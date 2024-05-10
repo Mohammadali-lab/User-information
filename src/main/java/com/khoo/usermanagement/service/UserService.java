@@ -1,5 +1,6 @@
 package com.khoo.usermanagement.service;
 
+import com.khoo.usermanagement.dto.ConfirmationCode;
 import com.khoo.usermanagement.entity.User;
 
 import java.time.LocalDate;
@@ -7,7 +8,7 @@ import java.util.List;
 
 public interface UserService {
 
-    User create(User user);
+    ConfirmationCode create(User user);
 
     User findById(Long id);
 
@@ -20,4 +21,6 @@ public interface UserService {
     List<Object[]> getNumberOfUsersPerCity();
 
     List<Object[]> numberOfUsersPerCityFilteredByAge(int age);
+
+    String confirmUser(ConfirmationCode confirmationCode);
 }

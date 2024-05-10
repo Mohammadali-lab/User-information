@@ -30,6 +30,6 @@ public class County {
     @OneToMany(mappedBy = "county", cascade = CascadeType.ALL)
     private List<City> city;
 
-    @OneToMany(mappedBy = "county")
-    private List<User> userList;
+//    @OneToMany(mappedBy = "county")
+//    private List<User> userList;
 }
