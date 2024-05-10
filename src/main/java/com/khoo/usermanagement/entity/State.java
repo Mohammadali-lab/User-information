@@ -23,8 +23,8 @@ public class State {
     @Column(name = "code")
     private String code;
 
-//    @OneToMany(mappedBy = "state")
-//    private List<User> userList;
+    @OneToMany(mappedBy = "state")
+    private List<User> userList;
 
     @OneToMany(mappedBy = "state", cascade = CascadeType.ALL)
     private List<County> countyList;

@@ -4,7 +4,9 @@ import com.khoo.usermanagement.dao.UserRepository;
 import com.khoo.usermanagement.dto.ConfirmationCode;
 import com.khoo.usermanagement.entity.User;
 import com.khoo.usermanagement.exception.ResourceNotFoundException;
-import com.khoo.usermanagement.security.JwtUtil;
+import com.khoo.usermanagement.security.jwt.JwtUtil;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -18,10 +20,13 @@ public class UserServiceImpl implements UserService{
 
     private UserRepository userRepository;
 
+    private final UserDetailsService userDetailsService;
+
     private JwtUtil jwtUtil;
 
-    public UserServiceImpl(UserRepository userRepository, JwtUtil jwtUtil) {
+    public UserServiceImpl(UserRepository userRepository, UserDetailsService userDetailsService, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
+        this.userDetailsService = userDetailsService;
         this.jwtUtil = jwtUtil;
     }
 
@@ -95,6 +100,11 @@ public class UserServiceImpl implements UserService{
             }
         }
         return null;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) {
+        return userDetailsService.loadUserByUsername(username);
     }
 
     public int generateConfirmCode() {

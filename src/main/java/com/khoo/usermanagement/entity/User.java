@@ -54,6 +54,14 @@ public class User {
     @JoinColumn(name = "city_id")
     private City city;
 
+    @ManyToOne
+    @JoinColumn(name = "county_id")
+    private County county;
+
+    @ManyToOne
+    @JoinColumn(name = "state_id")
+    private State state;
+
     public int getAge() {
         LocalDate now = LocalDate.now();
         return Period.between(birthDate, now).getYears();

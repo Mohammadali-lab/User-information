@@ -2,9 +2,10 @@ package com.khoo.usermanagement.controller;
 
 import com.khoo.usermanagement.dto.ConfirmationCode;
 import com.khoo.usermanagement.entity.User;
-import com.khoo.usermanagement.security.CheckJwtToken;
+import com.khoo.usermanagement.security.jwt.CheckJwtToken;
 import com.khoo.usermanagement.service.UserService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -55,7 +56,7 @@ public class UserController {
     }
 
     @CheckJwtToken
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         userService.delete(id);
         return ResponseEntity.noContent().build();

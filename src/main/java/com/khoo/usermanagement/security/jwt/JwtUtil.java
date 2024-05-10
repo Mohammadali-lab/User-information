@@ -1,10 +1,9 @@
-package com.khoo.usermanagement.security;
+package com.khoo.usermanagement.security.jwt;
 
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.SignatureException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -43,10 +42,10 @@ public class JwtUtil {
         return createToken(claims, username);
     }
 
-    public String generateUnlimitedToken(UserDetails userDetails, boolean mobile){
-        Claims claims = Jwts.claims().setSubject(userDetails.getUsername());
-        return createUnlimitedToken(claims, userDetails.getUsername(), mobile);
-    }
+//    public String generateUnlimitedToken(UserDetails userDetails, boolean mobile){
+//        Claims claims = Jwts.claims().setSubject(userDetails.getUsername());
+//        return createUnlimitedToken(claims, userDetails.getUsername(), mobile);
+//    }
 
 
 

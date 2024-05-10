@@ -4,16 +4,18 @@ import com.khoo.usermanagement.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByNationalCode(String nationalCode);
 
-    List<User> findByAgeAndCity_Name(int age, String cityName);
+//    List<User> findByAgeAndCity_Name(int age, String cityName);
 
     @Query("SELECT c.name, COUNT(u.id) FROM User u JOIN u.city c GROUP BY c.id")
     List<Object[]> countUsersByCity();

@@ -1,4 +1,4 @@
-package com.khoo.usermanagement.security;
+package com.khoo.usermanagement.security.jwt;
 
 
 import java.lang.annotation.ElementType;
