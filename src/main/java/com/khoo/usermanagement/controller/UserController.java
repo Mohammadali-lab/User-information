@@ -20,11 +20,12 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping
+    @PostMapping("/register")
     public ResponseEntity<ConfirmationCode> create(@RequestBody User user) {
         ConfirmationCode confirmationCode = userService.create(user);
         return ResponseEntity.ok(confirmationCode);
     }
+
 
     @PostMapping("/confirm-code")
     public ResponseEntity<String> confirmUser(@RequestBody ConfirmationCode confirmationCode) {
@@ -56,6 +57,7 @@ public class UserController {
     }
 
     @CheckJwtToken
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         userService.delete(id);

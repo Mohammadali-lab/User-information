@@ -2,11 +2,8 @@ package com.khoo.usermanagement.security;
 
 import com.khoo.usermanagement.dao.UserRepository;
 import com.khoo.usermanagement.entity.User;
-import com.khoo.usermanagement.security.jwt.JwtTokenAspect;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -25,8 +22,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/user", "api/user/confirm-code").permitAll())
-                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .build();
     }
@@ -40,11 +36,5 @@ public class SecurityConfig {
 
             throw new UsernameNotFoundException("User '" + username + "' not found");
         };
-    }
-
-    @Bean
-    @Order(Ordered.HIGHEST_PRECEDENCE)
-    public JwtTokenAspect jwtAspect() {
-        return new JwtTokenAspect();
     }
 }

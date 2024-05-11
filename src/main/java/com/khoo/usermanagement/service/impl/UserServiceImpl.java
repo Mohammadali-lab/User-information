@@ -1,10 +1,11 @@
-package com.khoo.usermanagement.service;
+package com.khoo.usermanagement.service.impl;
 
 import com.khoo.usermanagement.dao.UserRepository;
 import com.khoo.usermanagement.dto.ConfirmationCode;
 import com.khoo.usermanagement.entity.User;
 import com.khoo.usermanagement.exception.ResourceNotFoundException;
 import com.khoo.usermanagement.security.jwt.JwtUtil;
+import com.khoo.usermanagement.service.UserService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,7 @@ import java.util.Optional;
 import java.util.Random;
 
 @Service
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
 
     private UserRepository userRepository;
 
