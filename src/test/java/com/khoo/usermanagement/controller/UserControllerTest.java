@@ -32,14 +32,14 @@ class UserControllerTest {
     private UserService userService;
 
     @Test
-    void testCreateUser() {
+    void testRegisterUser() throws DuplicateUserException {
         // Arrange
         User user = new User("1234567890", "John Doe", "johndoe@example.com");
         ConfirmationCode confirmationCode = new ConfirmationCode("1234567890", "123456");
-        when(userService.create(user)).thenReturn(confirmationCode);
+        when(userService.register(user)).thenReturn(confirmationCode);
 
         // Act
-        ResponseEntity<ConfirmationCode> response = userController.create(user);
+        ResponseEntity<ConfirmationCode> response = userController.register(user);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -48,13 +48,13 @@ class UserControllerTest {
     }
 
     @Test
-    void testCreateUser_DuplicateNationalCode() {
+    void testRegisterUser_DuplicateNationalCode() throws DuplicateUserException {
         // Arrange
         User user = new User("1234567890", "John Doe", "johndoe@example.com");
-        when(userService.create(user)).thenThrow(new DuplicateUserException("User with national code already exists"));
+        when(userService.register(user)).thenThrow(new DuplicateUserException("User with national code already exists"));
 
         // Act and Assert
-        ResponseEntity<ConfirmationCode> response = userController.create(user);
+        ResponseEntity<ConfirmationCode> response = userController.register(user);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 

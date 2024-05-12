@@ -15,11 +15,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByNationalCode(String nationalCode);
 
-//    List<User> findByAgeAndCity_Name(int age, String cityName);
-
     @Query("SELECT c.name, COUNT(u.id) FROM User u JOIN u.city c GROUP BY c.id")
     List<Object[]> countUsersByCity();
 
     @Query("SELECT c.name, COUNT(u.id) FROM User u JOIN u.city c WHERE u.birthDate BETWEEN :startDate AND :endDate GROUP BY c.id")
-    List<Object[]> countUsersByCityAndAge(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    List<Object[]> countUsersPerCityByAge(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT COUNT(u.id) FROM User u JOIN u.city c WHERE u.birthDate BETWEEN :startDate AND :endDate AND c.name=:cityName GROUP BY c.id")
+    int countUsersByCityAndAge(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate,
+                                      @Param("cityName") String cityName);
 }

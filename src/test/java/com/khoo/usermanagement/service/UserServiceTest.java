@@ -26,32 +26,32 @@ class UserServiceTest {
     private UserRepository userRepository;
 
     @Test
-    void testCreateUser() {
+    void testRegisterUser() throws DuplicateUserException {
         // Arrange
         User user = new User("1234567890", "John Doe", "johndoe@example.com");
         when(userRepository.findByNationalCode(user.getNationalCode())).thenReturn(Optional.empty());
         when(userRepository.save(user)).thenReturn(user);
 
         // Act
-        ConfirmationCode confirmationCode = userService.create(user);
+        ConfirmationCode confirmationCode = userService.register(user);
 
         // Assert
         assertNotNull(confirmationCode);
-        assertEquals(user.getNationalCode(), confirmationCode.getNationalCode());
+        assertEquals(user.getNationalCode(), confirmationCode.getUserNationalCode());
         verify(userRepository).save(user);
     }
 
     @Test
-    void testCreateUser_DuplicateNationalCode() {
+    void testRegisterUser_DuplicateNationalCode() {
         // Arrange
         User user = new User("1234567890", "John Doe", "johndoe@example.com");
         when(userRepository.findByNationalCode(user.getNationalCode())).thenReturn(Optional.of(new User()));
 
         // Act and Assert
         try {
-            userService.create(user);
+            userService.register(user);
             assert false; // Should throw DuplicateUserException
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | DuplicateUserException e) {
             assertEquals("User with national code already exists", e.getMessage());
         }
     }

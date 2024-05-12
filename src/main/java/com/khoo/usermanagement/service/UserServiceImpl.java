@@ -1,8 +1,9 @@
-package com.khoo.usermanagement.service.impl;
+package com.khoo.usermanagement.service;
 
 import com.khoo.usermanagement.dao.UserRepository;
 import com.khoo.usermanagement.dto.ConfirmationCode;
 import com.khoo.usermanagement.entity.User;
+import com.khoo.usermanagement.exception.DuplicateUserException;
 import com.khoo.usermanagement.exception.ResourceNotFoundException;
 import com.khoo.usermanagement.security.jwt.JwtUtil;
 import com.khoo.usermanagement.service.UserService;
@@ -32,12 +33,12 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    public ConfirmationCode create(User user) {
+    public ConfirmationCode register(User user) throws DuplicateUserException {
 
         Optional<User> returnedUser = userRepository.findByNationalCode(user.getNationalCode());
 
         if(returnedUser.isPresent())
-            return null;
+            throw new DuplicateUserException("user is already exist");
 
         user.setConfirmed(false);
         user.setAdmin(false);
@@ -46,6 +47,21 @@ public class UserServiceImpl implements UserService {
 
         User user1 = userRepository.save(user);
         return new ConfirmationCode(user1.getNationalCode(), code);
+
+    }
+
+    public User create(User user) {
+
+        Optional<User> returnedUser = userRepository.findByNationalCode(user.getNationalCode());
+
+        if(returnedUser.isPresent())
+            return null;
+
+        user.setConfirmed(false);
+        user.setAdmin(true);
+
+        User user1 = userRepository.save(user);
+        return user1;
 
     }
 
@@ -70,7 +86,7 @@ public class UserServiceImpl implements UserService {
         userRepository.delete(user);
     }
 
-    public List<Object[]> getNumberOfUsersPerCity() {
+    public List<Object[]> numberOfUsersPerCity() {
         return userRepository.countUsersByCity();
     }
 
@@ -80,7 +96,16 @@ public class UserServiceImpl implements UserService {
         LocalDate endDate = startDate.plusYears(1);
 //        Date startDateParam = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 //        Date endDateParam = Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        return userRepository.countUsersByCityAndAge(startDate, endDate);
+        return userRepository.countUsersPerCityByAge(startDate, endDate);
+    }
+
+    @Override
+    public int numberOfUsersFilteredByAgeAndCity(int age, String cityName) {
+        LocalDate startDate = LocalDate.now().minusYears(age);
+        LocalDate endDate = startDate.plusYears(1);
+//        Date startDateParam = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+//        Date endDateParam = Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        return userRepository.countUsersByCityAndAge(startDate, endDate, cityName);
     }
 
     @Override

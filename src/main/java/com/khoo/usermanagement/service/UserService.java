@@ -2,6 +2,7 @@ package com.khoo.usermanagement.service;
 
 import com.khoo.usermanagement.dto.ConfirmationCode;
 import com.khoo.usermanagement.entity.User;
+import com.khoo.usermanagement.exception.DuplicateUserException;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
@@ -9,7 +10,9 @@ import java.util.List;
 
 public interface UserService {
 
-    ConfirmationCode create(User user);
+    ConfirmationCode register(User user) throws DuplicateUserException;
+
+    User create(User user);
 
     User findById(Long id);
 
@@ -19,9 +22,11 @@ public interface UserService {
 
     void delete(Long id);
 
-    List<Object[]> getNumberOfUsersPerCity();
+    List<Object[]> numberOfUsersPerCity();
 
     List<Object[]> numberOfUsersPerCityFilteredByAge(int age);
+
+    int numberOfUsersFilteredByAgeAndCity(int age, String cityName);
 
     String confirmUser(ConfirmationCode confirmationCode);
 
