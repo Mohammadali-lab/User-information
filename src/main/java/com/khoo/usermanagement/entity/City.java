@@ -22,8 +22,8 @@ public class City {
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "county_id")
-    private County county;
+    @JoinColumn(name = "state_id")
+    private State state;
 
     @OneToMany(mappedBy = "city")
     @JsonIgnore

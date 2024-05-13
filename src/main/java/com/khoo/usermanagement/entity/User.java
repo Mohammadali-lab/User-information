@@ -69,10 +69,6 @@ public class User {
     private City city;
 
     @ManyToOne
-    @JoinColumn(name = "county_id")
-    private County county;
-
-    @ManyToOne
     @JoinColumn(name = "state_id")
     private State state;
 

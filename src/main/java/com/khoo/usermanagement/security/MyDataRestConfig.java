@@ -1,7 +1,6 @@
 package com.khoo.usermanagement.security;
 
 import com.khoo.usermanagement.entity.City;
-import com.khoo.usermanagement.entity.County;
 import com.khoo.usermanagement.entity.State;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.rest.core.config.RepositoryRestConfiguration;
@@ -30,9 +29,8 @@ public class MyDataRestConfig implements RepositoryRestConfigurer {
 
         HttpMethod[] theUnsupportedActions = {HttpMethod.PUT, HttpMethod.POST, HttpMethod.DELETE};
 
-        // disable HTTP methods for State, County and City entities: PUT, POST and DELETE
+        // disable HTTP methods for State and City entities: PUT, POST and DELETE
         disableHttpMethods(State.class, config, theUnsupportedActions);
-        disableHttpMethods(County.class, config, theUnsupportedActions);
         disableHttpMethods(City.class, config, theUnsupportedActions);
 
         exposeIds(config);

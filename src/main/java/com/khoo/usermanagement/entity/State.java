@@ -27,5 +27,5 @@ public class State {
 
     @OneToMany(mappedBy = "state", cascade = CascadeType.REMOVE)
     @JsonIgnore
-    private List<County> countyList;
+    private List<City> cityList;
 }
