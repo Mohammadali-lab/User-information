@@ -1,12 +1,19 @@
 package com.khoo.usermanagement.controller;
 
 import com.khoo.usermanagement.dto.ConfirmationCode;
+import com.khoo.usermanagement.dto.UserDTO;
 import com.khoo.usermanagement.entity.User;
 import com.khoo.usermanagement.exception.DuplicateUserException;
+import com.khoo.usermanagement.exception.InvalidCodeException;
+import com.khoo.usermanagement.exception.UserNotFoundException;
 import com.khoo.usermanagement.security.jwt.CheckJwtToken;
 import com.khoo.usermanagement.service.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,22 +34,56 @@ public class UserController {
             ConfirmationCode confirmationCode = userService.register(user);
             return ResponseEntity.ok(confirmationCode);
         } catch (DuplicateUserException e) {
-
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         }
+    }
+
+    @GetMapping("login/{nationalCode}")
+    public ResponseEntity<ConfirmationCode> login(@PathVariable String nationalCode) {
+        try {
+            ConfirmationCode confirmationCode = userService.login(nationalCode);
+            return ResponseEntity.ok(confirmationCode);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
+    @GetMapping("/logout")
+    public ResponseEntity<String> logout() {
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        userService.logout(username);
+        return ResponseEntity.ok("logged out successfully");
     }
 
 
     @PostMapping("/confirm-code")
-    public ResponseEntity<String> confirmUser(@RequestBody ConfirmationCode confirmationCode) {
+    public ResponseEntity<UserDTO> confirmUser(@RequestBody ConfirmationCode confirmationCode) {
 
-        String code = userService.confirmUser(confirmationCode);
-        return ResponseEntity.ok(code);
-
+        try {
+            UserDTO userDTO = userService.confirmUser(confirmationCode);
+            return ResponseEntity.ok(userDTO);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (InvalidCodeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
     }
-    @PostMapping("/add-admin")
-    public ResponseEntity<User> create(@RequestBody User user) {
-        User user1 = userService.create(user);
-        return ResponseEntity.ok(user1);
+
+    @PostMapping
+    public ResponseEntity<User> create(@RequestBody User inputUser) {
+        try {
+            User user = userService.create(inputUser);
+            return ResponseEntity.ok(user);
+        } catch (DuplicateUserException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<User>> getAllUsers(Pageable pageable) {
+        Page<User> users = userService.findAll(pageable);
+        return ResponseEntity.ok(users);
     }
 
     @CheckJwtToken

@@ -1,5 +1,6 @@
 package com.khoo.usermanagement.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,5 +29,6 @@ public class City {
     private County county;
 
     @OneToMany(mappedBy = "city")
+    @JsonIgnore
     private List<User> userList;
 }

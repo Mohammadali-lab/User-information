@@ -1,5 +1,6 @@
 package com.khoo.usermanagement.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,9 +28,11 @@ public class County {
     @JoinColumn(name = "state_id")
     private State state;
 
-    @OneToMany(mappedBy = "county", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "county", cascade = CascadeType.REMOVE)
+    @JsonIgnore
     private List<City> city;
 
     @OneToMany(mappedBy = "county")
+    @JsonIgnore
     private List<User> userList;
 }

@@ -1,5 +1,6 @@
 package com.khoo.usermanagement.dto;
 
+import com.khoo.usermanagement.entity.User;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -7,13 +8,9 @@ import java.time.LocalDate;
 @Data
 public class UserDTO {
 
-    private String firstName;
+    private User user;
 
-    private String lastName;
+    private String token;
 
-    private String nationalCode;
-
-    private LocalDate brithDate;
-
-
+    private String message;
 }

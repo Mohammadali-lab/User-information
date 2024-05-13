@@ -2,11 +2,14 @@ package com.khoo.usermanagement.service;
 
 import com.khoo.usermanagement.dao.UserRepository;
 import com.khoo.usermanagement.dto.ConfirmationCode;
+import com.khoo.usermanagement.dto.UserDTO;
 import com.khoo.usermanagement.entity.User;
 import com.khoo.usermanagement.exception.DuplicateUserException;
-import com.khoo.usermanagement.exception.ResourceNotFoundException;
+import com.khoo.usermanagement.exception.InvalidCodeException;
+import com.khoo.usermanagement.exception.UserNotFoundException;
 import com.khoo.usermanagement.security.jwt.JwtUtil;
-import com.khoo.usermanagement.service.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
@@ -33,21 +36,48 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    public ConfirmationCode register(User user) throws DuplicateUserException {
+    public ConfirmationCode register(User user){
 
         Optional<User> returnedUser = userRepository.findByNationalCode(user.getNationalCode());
 
         if(returnedUser.isPresent())
             throw new DuplicateUserException("user is already exist");
 
-        user.setConfirmed(false);
+        user.setEnable(false);
         user.setAdmin(false);
         String code = Integer.toString(generateConfirmCode());
         user.setConfirmedCode(code);
+        user.setConfirmCodeRegisterTime(LocalDateTime.now());
 
-        User user1 = userRepository.save(user);
-        return new ConfirmationCode(user1.getNationalCode(), code);
+        User savedUser = userRepository.save(user);
+        return new ConfirmationCode(savedUser.getNationalCode(), code);
 
+    }
+
+    public ConfirmationCode login(String nationalCode) {
+
+        Optional<User> returnedUser = userRepository.findByNationalCode(nationalCode);
+
+        if(!returnedUser.isPresent())
+            throw new UserNotFoundException("user not found");
+
+        User user = returnedUser.get();
+
+        user.setEnable(false);
+        String code = Integer.toString(generateConfirmCode());
+        user.setConfirmedCode(code);
+        user.setConfirmCodeRegisterTime(LocalDateTime.now());
+
+        User savedUser = userRepository.save(user);
+        return new ConfirmationCode(savedUser.getNationalCode(), code);
+
+    }
+
+    public void logout(String nationalCode){
+
+        User user = userRepository.findByNationalCode(nationalCode).get();
+        user.setEnable(false);
+        userRepository.save(user);
     }
 
     public User create(User user) {
@@ -55,22 +85,24 @@ public class UserServiceImpl implements UserService {
         Optional<User> returnedUser = userRepository.findByNationalCode(user.getNationalCode());
 
         if(returnedUser.isPresent())
-            return null;
+            throw new DuplicateUserException("user is already exist");
 
-        user.setConfirmed(false);
-        user.setAdmin(true);
+        user.setEnable(false);
 
-        User user1 = userRepository.save(user);
-        return user1;
-
+        return userRepository.save(user);
     }
 
     public User findById(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
     public User findByNationalCode(String nationalCode) {
-        return userRepository.findByNationalCode(nationalCode).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        return userRepository.findByNationalCode(nationalCode).orElseThrow(() -> new UserNotFoundException("User not found"));
+    }
+
+    @Override
+    public Page<User> findAll(Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
 
     public User update(Long id, User updatedUser) {
@@ -109,23 +141,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String confirmUser(ConfirmationCode confirmationCode) {
-        Optional<User> user = userRepository.findByNationalCode(confirmationCode.getUserNationalCode());
-        if (user.isPresent()){
-            User user1 = user.get();
+    public UserDTO confirmUser(ConfirmationCode confirmationCode) {
+        Optional<User> returnedUser = userRepository.findByNationalCode(confirmationCode.getUserNationalCode());
+        if (returnedUser.isPresent()){
+            User user = returnedUser.get();
             LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
-            if (user1.getCreatedAt().isAfter(fiveMinutesAgo) &&
-                    confirmationCode.getConfirmedCode().equals(user1.getConfirmedCode())) {
+            if (user.getConfirmCodeRegisterTime().isAfter(fiveMinutesAgo) &&
+                    confirmationCode.getConfirmedCode().equals(user.getConfirmedCode())) {
 
-                user1.setConfirmed(true);
-                userRepository.save(user1);
-                return jwtUtil.generateToken(user1.getNationalCode());
-
-            } else {
-                return null;
+                user.setEnable(true);
+                User savedUser = userRepository.save(user);
+                String token = jwtUtil.generateToken(user.getNationalCode());
+                UserDTO userDTO = new UserDTO();
+                userDTO.setUser(savedUser);
+                userDTO.setToken(token);
+                userDTO.setMessage("user saved successfully");
+                return userDTO;
             }
+            throw new InvalidCodeException("otp code is invalid");
         }
-        return null;
+        throw new UserNotFoundException("user not found");
     }
 
     @Override
