@@ -21,9 +21,6 @@ public class State {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "code")
-    private String code;
-
     @OneToMany(mappedBy = "state")
     @JsonIgnore
     private List<User> userList;

@@ -4,10 +4,11 @@ import com.khoo.usermanagement.dto.ConfirmationCode;
 import com.khoo.usermanagement.dto.UserDTO;
 import com.khoo.usermanagement.entity.User;
 import com.khoo.usermanagement.exception.DuplicateUserException;
-import com.khoo.usermanagement.exception.InvalidCodeException;
+import com.khoo.usermanagement.exception.UnauthorizedException;
 import com.khoo.usermanagement.exception.UserNotFoundException;
 import com.khoo.usermanagement.security.jwt.CheckJwtToken;
 import com.khoo.usermanagement.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ConfirmationCode> register(@RequestBody User user) {
+    public ResponseEntity<ConfirmationCode> register(@Valid @RequestBody User user) {
         try{
             ConfirmationCode confirmationCode = userService.register(user);
             return ResponseEntity.ok(confirmationCode);
@@ -48,6 +49,7 @@ public class UserController {
         }
     }
 
+    @CheckJwtToken
     @GetMapping("/logout")
     public ResponseEntity<String> logout() {
 
@@ -65,13 +67,15 @@ public class UserController {
             return ResponseEntity.ok(userDTO);
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        } catch (InvalidCodeException e) {
+        } catch (UnauthorizedException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }
 
+    @CheckJwtToken
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<User> create(@RequestBody User inputUser) {
+    public ResponseEntity<User> create(@Valid @RequestBody User inputUser) {
         try {
             User user = userService.create(inputUser);
             return ResponseEntity.ok(user);
@@ -80,6 +84,8 @@ public class UserController {
         }
     }
 
+    @CheckJwtToken
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<Page<User>> getAllUsers(Pageable pageable) {
         Page<User> users = userService.findAll(pageable);
@@ -102,7 +108,7 @@ public class UserController {
 
     @CheckJwtToken
     @PutMapping("/{id}")
-    public ResponseEntity<User> update(@PathVariable Long id, @RequestBody User updatedUser) {
+    public ResponseEntity<User> update(@PathVariable Long id, @Valid @RequestBody User updatedUser) {
         User user = userService.update(id, updatedUser);
         return ResponseEntity.ok(user);
     }
@@ -116,12 +122,14 @@ public class UserController {
     }
 
     @CheckJwtToken
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/count-per-city")
     public List<Object[]> getNumberOfUsersPerCity() {
         return userService.numberOfUsersPerCity();
     }
 
     @CheckJwtToken
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/count-per-city-by-age/{age}")
     public List<Object[]> getNumberOfUsersPerCityByAge(@PathVariable int age) {
 
@@ -129,6 +137,7 @@ public class UserController {
     }
 
     @CheckJwtToken
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/count-by-age-and-city/{age}/{city}")
     public int getNumberOfUsersByAgeAndCity(@PathVariable int age, @PathVariable String city) {
         return userService.numberOfUsersFilteredByAgeAndCity(age, city);

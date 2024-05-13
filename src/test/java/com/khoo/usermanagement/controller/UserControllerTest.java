@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.time.LocalDate;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
@@ -34,7 +36,11 @@ class UserControllerTest {
     @Test
     void testRegisterUser() throws DuplicateUserException {
         // Arrange
-        User user = new User("1234567890", "John Doe", "johndoe@example.com");
+        User user = new User();
+        user.setFirstName("MohammadAli");
+        user.setLastName("Khoo");
+        user.setNationalCode("1234567890");
+        user.setBirthDate(LocalDate.parse("1994-03-06"));
         ConfirmationCode confirmationCode = new ConfirmationCode("1234567890", "123456");
         when(userService.register(user)).thenReturn(confirmationCode);
 
@@ -50,7 +56,11 @@ class UserControllerTest {
     @Test
     void testRegisterUser_DuplicateNationalCode() throws DuplicateUserException {
         // Arrange
-        User user = new User("1234567890", "John Doe", "johndoe@example.com");
+        User user = new User();
+        user.setFirstName("MohammadAli");
+        user.setLastName("Khoo");
+        user.setNationalCode("1234567890");
+        user.setBirthDate(LocalDate.parse("1994-03-06"));
         when(userService.register(user)).thenThrow(new DuplicateUserException("User with national code already exists"));
 
         // Act and Assert
@@ -78,25 +88,25 @@ class UserControllerTest {
     public void testUpdate() throws Exception {
         Long id = 1L;
         User updatedUser = new User();
-        updatedUser.setFirstName("John");
-        updatedUser.setLastName("Doe");
+        updatedUser.setFirstName("MohammadAli");
+        updatedUser.setLastName("Khoo");
         updatedUser.setNationalCode("1234567890");
 
         User user = new User();
         user.setId(id);
-        user.setFirstName("Jane");
-        user.setLastName("Doe");
+        user.setFirstName("Ali");
+        user.setLastName("Khou");
         user.setNationalCode("0987654321");
 
         when(userService.update(id, updatedUser)).thenReturn(user);
 
         mockMvc.perform(MockMvcRequestBuilders.put("/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"firstName\":\"John\",\"lastName\":\"Doe\",\"nationalCode\":\"1234567890\"}"))
+                        .content("{\"firstName\":\"MohammadAli\",\"lastName\":\"Khoo\",\"nationalCode\":\"1234567890\"}"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(id))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.firstName").value("Jane"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.lastName").value("Doe"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.firstName").value("Ali"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.lastName").value("Khou"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.nationalCode").value("0987654321"));
 
         verify(userService, times(1)).update(id, updatedUser);

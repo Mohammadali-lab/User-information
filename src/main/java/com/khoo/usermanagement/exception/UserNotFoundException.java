@@ -1,12 +1,16 @@
 package com.khoo.usermanagement.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@ResponseStatus(HttpStatus.NOT_FOUND)
+import java.time.LocalDateTime;
+
 public class UserNotFoundException extends RuntimeException{
+
+    private static final Logger logger = LoggerFactory.getLogger(DuplicateUserException.class);
 
     public UserNotFoundException(String message) {
         super(message);
+        logger.error("Exception message: {}, Method name: {}, Time: {}", message, new Exception().getStackTrace()[1].getMethodName(), LocalDateTime.now());
     }
 }

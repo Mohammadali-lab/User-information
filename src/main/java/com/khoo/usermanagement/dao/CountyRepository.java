@@ -10,5 +10,5 @@ import java.util.List;
 @RepositoryRestResource
 public interface CountyRepository extends JpaRepository<County, Long> {
 
-    List<County> findByStateCode(@Param("code") String code);
+    List<County> findByStateName(@Param("name") String name);
 }

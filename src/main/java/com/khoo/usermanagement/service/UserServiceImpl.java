@@ -5,7 +5,7 @@ import com.khoo.usermanagement.dto.ConfirmationCode;
 import com.khoo.usermanagement.dto.UserDTO;
 import com.khoo.usermanagement.entity.User;
 import com.khoo.usermanagement.exception.DuplicateUserException;
-import com.khoo.usermanagement.exception.InvalidCodeException;
+import com.khoo.usermanagement.exception.UnauthorizedException;
 import com.khoo.usermanagement.exception.UserNotFoundException;
 import com.khoo.usermanagement.security.jwt.JwtUtil;
 import org.springframework.data.domain.Page;
@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserService {
         Optional<User> returnedUser = userRepository.findByNationalCode(user.getNationalCode());
 
         if(returnedUser.isPresent())
-            throw new DuplicateUserException("user is already exist");
+            throw new DuplicateUserException("user with nationalCode " + returnedUser.get().getNationalCode() + " is already exist");
 
         user.setEnable(false);
         user.setAdmin(false);
@@ -85,7 +85,7 @@ public class UserServiceImpl implements UserService {
         Optional<User> returnedUser = userRepository.findByNationalCode(user.getNationalCode());
 
         if(returnedUser.isPresent())
-            throw new DuplicateUserException("user is already exist");
+            throw new DuplicateUserException("user with nationalCode " + returnedUser.get().getNationalCode() + " is already exist");
 
         user.setEnable(false);
 
@@ -93,11 +93,11 @@ public class UserServiceImpl implements UserService {
     }
 
     public User findById(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User not found"));
+        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("user " + id + " not found"));
     }
 
     public User findByNationalCode(String nationalCode) {
-        return userRepository.findByNationalCode(nationalCode).orElseThrow(() -> new UserNotFoundException("User not found"));
+        return userRepository.findByNationalCode(nationalCode).orElseThrow(() -> new UserNotFoundException("user " + nationalCode + " not found"));
     }
 
     @Override
@@ -126,8 +126,6 @@ public class UserServiceImpl implements UserService {
     public List<Object[]> numberOfUsersPerCityFilteredByAge(int age) {
         LocalDate startDate = LocalDate.now().minusYears(age);
         LocalDate endDate = startDate.plusYears(1);
-//        Date startDateParam = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-//        Date endDateParam = Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         return userRepository.countUsersPerCityByAge(startDate, endDate);
     }
 
@@ -135,8 +133,6 @@ public class UserServiceImpl implements UserService {
     public int numberOfUsersFilteredByAgeAndCity(int age, String cityName) {
         LocalDate startDate = LocalDate.now().minusYears(age);
         LocalDate endDate = startDate.plusYears(1);
-//        Date startDateParam = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-//        Date endDateParam = Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         return userRepository.countUsersByCityAndAge(startDate, endDate, cityName);
     }
 
@@ -158,9 +154,9 @@ public class UserServiceImpl implements UserService {
                 userDTO.setMessage("user saved successfully");
                 return userDTO;
             }
-            throw new InvalidCodeException("otp code is invalid");
+            throw new UnauthorizedException("otp code " + confirmationCode.getConfirmedCode() + " from user " + user.getNationalCode() + " is invalid");
         }
-        throw new UserNotFoundException("user not found");
+        throw new UserNotFoundException("user " + confirmationCode.getUserNationalCode() + " not found");
     }
 
     @Override

@@ -10,5 +10,5 @@ import java.util.List;
 @RepositoryRestResource
 public interface CityRepository extends JpaRepository<City, Long> {
 
-    List<City> findByCountyCode(@Param("code") String code);
+    List<City> findByCountyName(@Param("name") String name);
 }

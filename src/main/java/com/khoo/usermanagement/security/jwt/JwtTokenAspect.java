@@ -1,5 +1,6 @@
 package com.khoo.usermanagement.security.jwt;
 
+import com.khoo.usermanagement.exception.UnauthorizedException;
 import com.khoo.usermanagement.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -32,21 +33,18 @@ public class JwtTokenAspect {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         final String header = request.getHeader("Authorization");
         if (header==null || !header.toLowerCase().startsWith("bearer ")) {
-//            throw new UnauthorizedException("Invalid or missing JWT token");
-           return null;
+            throw new UnauthorizedException("Invalid or missing JWT token");
         }
 
         final String token = header.split(" ")[1].trim();
         if (!jwtUtil.validateToken(token) || jwtUtil.isTokenExpired(token)) {
-//            throw new UnauthorizedException("Invalid or missing JWT token");
-            return null;
+            throw new UnauthorizedException("Invalid or missing JWT token");
         }
 
         UserDetails userDetails = userService.loadUserByUsername(jwtUtil.extractUsername(token));
 
         if(!userDetails.isEnabled()){
-            //            throw new UnauthorizedException("Invalid or missing JWT token");
-            return null;
+            throw new UnauthorizedException("user " + userDetails.getUsername() + " is not enabled");
         }
 
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));

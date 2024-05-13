@@ -18,9 +18,6 @@ public class County {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "code")
-    private String code;
-
     @Column(name = "name")
     private String name;
 

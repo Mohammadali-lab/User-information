@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,16 +27,17 @@ class UserServiceTest {
     private UserRepository userRepository;
 
     @Test
-    void testRegisterUser() throws DuplicateUserException {
-        // Arrange
-        User user = new User("1234567890", "John Doe", "johndoe@example.com");
+    void testRegisterUser() {
+        User user = new User();
+        user.setFirstName("MohammadAli");
+        user.setLastName("Khoo");
+        user.setNationalCode("1234567890");
+        user.setBirthDate(LocalDate.parse("1994-03-06"));
         when(userRepository.findByNationalCode(user.getNationalCode())).thenReturn(Optional.empty());
         when(userRepository.save(user)).thenReturn(user);
 
-        // Act
         ConfirmationCode confirmationCode = userService.register(user);
 
-        // Assert
         assertNotNull(confirmationCode);
         assertEquals(user.getNationalCode(), confirmationCode.getUserNationalCode());
         verify(userRepository).save(user);
@@ -43,15 +45,17 @@ class UserServiceTest {
 
     @Test
     void testRegisterUser_DuplicateNationalCode() {
-        // Arrange
-        User user = new User("1234567890", "John Doe", "johndoe@example.com");
+        User user = new User();
+        user.setFirstName("MohammadAli");
+        user.setLastName("Khoo");
+        user.setNationalCode("1234567890");
+        user.setBirthDate(LocalDate.parse("1994-03-06"));
         when(userRepository.findByNationalCode(user.getNationalCode())).thenReturn(Optional.of(new User()));
 
-        // Act and Assert
         try {
             userService.register(user);
-            assert false; // Should throw DuplicateUserException
-        } catch (RuntimeException | DuplicateUserException e) {
+            assert false;
+        } catch (RuntimeException e) {
             assertEquals("User with national code already exists", e.getMessage());
         }
     }
@@ -82,14 +86,14 @@ class UserServiceTest {
     public void testUpdate() {
         Long id = 1L;
         User updatedUser = new User();
-        updatedUser.setFirstName("John");
-        updatedUser.setLastName("Doe");
+        updatedUser.setFirstName("MohammadAli");
+        updatedUser.setLastName("Khoo");
         updatedUser.setNationalCode("1234567890");
 
         User user = new User();
         user.setId(id);
-        user.setFirstName("Jane");
-        user.setLastName("Doe");
+        user.setFirstName("Ali");
+        user.setLastName("Khou");
         user.setNationalCode("0987654321");
 
         when(userRepository.findById(id)).thenReturn(java.util.Optional.of(user));
@@ -98,8 +102,8 @@ class UserServiceTest {
         User result = userService.update(id, updatedUser);
 
         assertEquals(id, result.getId());
-        assertEquals("John", result.getFirstName());
-        assertEquals("Doe", result.getLastName());
+        assertEquals("MohammadAli", result.getFirstName());
+        assertEquals("Khoo", result.getLastName());
         assertEquals("1234567890", result.getNationalCode());
 
         verify(userRepository).findById(id);
