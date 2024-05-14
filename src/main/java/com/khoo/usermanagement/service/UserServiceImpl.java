@@ -15,7 +15,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
         user.setAdmin(false);
         String code = Integer.toString(generateConfirmCode());
         user.setConfirmedCode(code);
-        user.setConfirmCodeRegisterTime(LocalDateTime.now());
+        user.setConfirmCodeRegisterTime(new Date(System.currentTimeMillis()));
 
         User savedUser = userRepository.save(user);
         return new ConfirmationCode(savedUser.getNationalCode(), code);
@@ -66,7 +66,7 @@ public class UserServiceImpl implements UserService {
         user.setEnable(false);
         String code = Integer.toString(generateConfirmCode());
         user.setConfirmedCode(code);
-        user.setConfirmCodeRegisterTime(LocalDateTime.now());
+        user.setConfirmCodeRegisterTime(new Date(System.currentTimeMillis()));
 
         User savedUser = userRepository.save(user);
         return new ConfirmationCode(savedUser.getNationalCode(), code);
@@ -88,7 +88,6 @@ public class UserServiceImpl implements UserService {
             throw new DuplicateUserException("user with nationalCode " + returnedUser.get().getNationalCode() + " is already exist");
 
         user.setEnable(false);
-
         return userRepository.save(user);
     }
 
@@ -141,12 +140,13 @@ public class UserServiceImpl implements UserService {
         Optional<User> returnedUser = userRepository.findByNationalCode(confirmationCode.getUserNationalCode());
         if (returnedUser.isPresent()){
             User user = returnedUser.get();
-            LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
-            if (user.getConfirmCodeRegisterTime().isAfter(fiveMinutesAgo) &&
+            Date fiveMinutesAgo = new Date(System.currentTimeMillis() - 5 * 60 * 1000);
+            if (user.getConfirmCodeRegisterTime().after(fiveMinutesAgo) &&
                     confirmationCode.getConfirmedCode().equals(user.getConfirmedCode())) {
 
                 user.setEnable(true);
                 User savedUser = userRepository.save(user);
+
                 String token = jwtUtil.generateToken(user.getNationalCode());
                 UserDTO userDTO = new UserDTO();
                 userDTO.setUser(savedUser);

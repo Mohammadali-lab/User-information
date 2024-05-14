@@ -93,15 +93,23 @@ public class UserController {
     }
 
     @CheckJwtToken
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<User> findById(@PathVariable Long id) {
-        User user = userService.findById(id);
-        return ResponseEntity.ok(user);
+        try{
+            User user = userService.findById(id);
+            return ResponseEntity.ok(user);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 
     @CheckJwtToken
-    @GetMapping("/national-code/{nationalCode}")
-    public ResponseEntity<User> findByNationalCode(@PathVariable String nationalCode) {
+    @GetMapping("/get-profile")
+    public ResponseEntity<User> getProfile() {
+
+        String nationalCode = SecurityContextHolder.getContext().getAuthentication().getName();
+
         User user = userService.findByNationalCode(nationalCode);
         return ResponseEntity.ok(user);
     }

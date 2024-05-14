@@ -10,15 +10,15 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Period;
+import java.io.Serializable;
+import java.time.*;
+import java.util.Date;
 
 @Entity
 @Table(name = "user")
 @Setter
 @Getter
-public class User {
+public class User implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,11 +27,11 @@ public class User {
 
     @Column(name = "created_at")
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Date createdAt;
 
     @Column(name = "updated_at")
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private Date updatedAt;
 
     @NotNull
     @Column(name = "first_name", nullable = false)
@@ -47,7 +47,7 @@ public class User {
 
     @NotNull
     @Column(name = "birth_date", nullable = false)
-    private LocalDate birthDate;
+    private Date birthDate;
 
     @Column(name = "address")
     private String address;
@@ -62,7 +62,7 @@ public class User {
     private String confirmedCode;
 
     @Column(name = "confirm_code_register_time")
-    private LocalDateTime confirmCodeRegisterTime;
+    private Date confirmCodeRegisterTime;
 
     @ManyToOne
     @JoinColumn(name = "city_id")
@@ -73,8 +73,10 @@ public class User {
     private State state;
 
     public int getAge() {
-        LocalDate now = LocalDate.now();
-        return Period.between(birthDate, now).getYears();
+        Date now = new Date();
+        Instant nowInstant = now.toInstant();
+        LocalDate nowDate = LocalDate.ofInstant(nowInstant, ZoneId.systemDefault());
+        return Period.between(birthDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), nowDate).getYears();
     }
 
 }

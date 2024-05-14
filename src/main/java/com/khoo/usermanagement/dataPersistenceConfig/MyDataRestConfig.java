@@ -1,4 +1,4 @@
-package com.khoo.usermanagement.security;
+package com.khoo.usermanagement.dataPersistenceConfig;
 
 import com.khoo.usermanagement.entity.City;
 import com.khoo.usermanagement.entity.State;
@@ -33,7 +33,7 @@ public class MyDataRestConfig implements RepositoryRestConfigurer {
         disableHttpMethods(State.class, config, theUnsupportedActions);
         disableHttpMethods(City.class, config, theUnsupportedActions);
 
-        exposeIds(config);
+        config.exposeIdsFor(State.class, City.class);
     }
 
     private void disableHttpMethods(Class theClass, RepositoryRestConfiguration config, HttpMethod[] theUnsupportedActions) {
@@ -41,18 +41,5 @@ public class MyDataRestConfig implements RepositoryRestConfigurer {
                 .forDomainType(theClass)
                 .withItemExposure((metdata, httpMethods) -> httpMethods.disable(theUnsupportedActions))
                 .withCollectionExposure((metdata, httpMethods) -> httpMethods.disable(theUnsupportedActions));
-    }
-
-    private void exposeIds(RepositoryRestConfiguration config) {
-
-        Set<EntityType<?>> entities = entityManager.getMetamodel().getEntities();
-
-        List<Class> entityClasses = new ArrayList<>();
-
-        for(EntityType tempEntityType : entities)
-            entityClasses.add(tempEntityType.getJavaType());
-
-        Class[] domainTypes = entityClasses.toArray(new Class[0]);
-        config.exposeIdsFor(domainTypes);
     }
 }
