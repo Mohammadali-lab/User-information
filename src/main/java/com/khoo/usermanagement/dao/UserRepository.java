@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,9 +24,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<Object[]> countUsersByCity();
 
     @Query("SELECT c.name, COUNT(u.id) FROM User u JOIN u.city c WHERE u.birthDate BETWEEN :startDate AND :endDate GROUP BY c.id")
-    List<Object[]> countUsersPerCityByAge(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    List<Object[]> countUsersPerCityByAge(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
 
-    @Query("SELECT COUNT(u.id) FROM User u JOIN u.city c WHERE u.birthDate BETWEEN :startDate AND :endDate AND c.name=:cityName GROUP BY c.id")
-    int countUsersByCityAndAge(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate,
-                               @Param("cityName") String cityName);
+    @Query("SELECT COUNT(u.id) FROM User u JOIN u.city c WHERE u.birthDate BETWEEN :startDate AND :endDate AND c.id=:cityId")
+    int countUsersByCityAndAge(@Param("startDate") Date startDate, @Param("endDate") Date endDate,
+                               @Param("cityId") Long cityId);
 }

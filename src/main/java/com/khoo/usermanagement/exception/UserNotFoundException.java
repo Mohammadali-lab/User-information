@@ -11,6 +11,6 @@ public class UserNotFoundException extends RuntimeException{
 
     public UserNotFoundException(String message) {
         super(message);
-        logger.error("Exception message: {}, Method name: {}, Time: {}", message, new Exception().getStackTrace()[1].getMethodName(), LocalDateTime.now());
+        logger.warn("UserNotFoundException: {}, Method name: {}, Time: {}", message, new Exception().getStackTrace()[1].getMethodName(), LocalDateTime.now());
     }
 }

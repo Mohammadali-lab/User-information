@@ -15,6 +15,6 @@ public class UnauthorizedException extends RuntimeException{
     public UnauthorizedException(String message) {
 
         super(message);
-        logger.error("Exception message: {}, Method name: {}, Time: {}", message, new Exception().getStackTrace()[1].getMethodName(), LocalDateTime.now());
+        logger.warn("UnauthorizedException: {}, Method name: {}, Time: {}", message, new Exception().getStackTrace()[1].getMethodName(), LocalDateTime.now());
     }
 }

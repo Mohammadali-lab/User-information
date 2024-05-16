@@ -30,23 +30,27 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ConfirmationCode> register(@Valid @RequestBody User user) {
+    public ResponseEntity<Object> register(@Valid @RequestBody User user) {
         try{
             ConfirmationCode confirmationCode = userService.register(user);
             return ResponseEntity.ok(confirmationCode);
         } catch (DuplicateUserException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
 
     @GetMapping("login/{nationalCode}")
-    public ResponseEntity<ConfirmationCode> login(@PathVariable String nationalCode) {
+    public ResponseEntity<Object> login(@PathVariable String nationalCode) {
+
+        User user;
         try {
-            ConfirmationCode confirmationCode = userService.login(nationalCode);
-            return ResponseEntity.ok(confirmationCode);
+            user = userService.findByNationalCode(nationalCode);
         } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
+
+        ConfirmationCode confirmationCode = userService.login(user);
+        return ResponseEntity.ok(confirmationCode);
     }
 
     @CheckJwtToken
@@ -60,27 +64,28 @@ public class UserController {
 
 
     @PostMapping("/confirm-code")
-    public ResponseEntity<UserDTO> confirmUser(@RequestBody ConfirmationCode confirmationCode) {
+    public ResponseEntity<Object> confirmUser(@RequestBody ConfirmationCode confirmationCode) {
 
         try {
-            UserDTO userDTO = userService.confirmUser(confirmationCode);
+            User user = userService.findByNationalCode(confirmationCode.getUserNationalCode());
+            UserDTO userDTO = userService.confirmUser(user, confirmationCode.getConfirmedCode());
             return ResponseEntity.ok(userDTO);
         } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (UnauthorizedException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+           return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
 
     @CheckJwtToken
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<User> create(@Valid @RequestBody User inputUser) {
+    public ResponseEntity<Object> create(@Valid @RequestBody User inputUser) {
         try {
             User user = userService.create(inputUser);
             return ResponseEntity.ok(user);
         } catch (DuplicateUserException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
 
@@ -95,12 +100,12 @@ public class UserController {
     @CheckJwtToken
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
-    public ResponseEntity<User> findById(@PathVariable Long id) {
+    public ResponseEntity<Object> findById(@PathVariable Long id) {
         try{
             User user = userService.findById(id);
             return ResponseEntity.ok(user);
         } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
@@ -115,18 +120,38 @@ public class UserController {
     }
 
     @CheckJwtToken
-    @PutMapping("/{id}")
-    public ResponseEntity<User> update(@PathVariable Long id, @Valid @RequestBody User updatedUser) {
-        User user = userService.update(id, updatedUser);
+    @PatchMapping
+    public ResponseEntity<User> updateProfile(@Valid @RequestBody User updatedUser) {
+
+        String nationalCode = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userService.updateProfile(nationalCode, updatedUser);
         return ResponseEntity.ok(user);
     }
 
     @CheckJwtToken
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        userService.delete(id);
-        return ResponseEntity.noContent().build();
+    @PutMapping("/{id}")
+    public ResponseEntity<Object> update(@PathVariable Long id, @Valid @RequestBody User updatedUser) {
+
+        try {
+            User user = userService.update(id, updatedUser);
+            return ResponseEntity.ok(user);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @CheckJwtToken
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Object> delete(@PathVariable Long id) {
+        try{
+            userService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     @CheckJwtToken
@@ -146,8 +171,8 @@ public class UserController {
 
     @CheckJwtToken
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/count-by-age-and-city/{age}/{city}")
-    public int getNumberOfUsersByAgeAndCity(@PathVariable int age, @PathVariable String city) {
-        return userService.numberOfUsersFilteredByAgeAndCity(age, city);
+    @GetMapping("/count-by-age-and-cityId/{age}/{cityId}")
+    public int getNumberOfUsersByAgeAndCity(@PathVariable int age, @PathVariable Long cityId) {
+        return userService.numberOfUsersFilteredByAgeAndCity(age, cityId);
     }
 }

@@ -7,7 +7,7 @@ import com.khoo.usermanagement.entity.User;
 import com.khoo.usermanagement.exception.DuplicateUserException;
 import com.khoo.usermanagement.exception.UnauthorizedException;
 import com.khoo.usermanagement.exception.UserNotFoundException;
-import com.khoo.usermanagement.service.UserServiceImpl;
+import com.khoo.usermanagement.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,7 +36,7 @@ public class UserControllerTest {
         ConfirmationCode confirmationCode = new ConfirmationCode(user.getNationalCode(), "1234");
         when(userService.register(user)).thenReturn(confirmationCode);
 
-        ResponseEntity<ConfirmationCode> response = userController.register(user);
+        ResponseEntity<Object> response = userController.register(user);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(confirmationCode, response.getBody());
@@ -48,20 +49,22 @@ public class UserControllerTest {
         user.setNationalCode("1234567890");
         when(userService.register(user)).thenThrow(new DuplicateUserException("Duplicate user"));
 
-        ResponseEntity<ConfirmationCode> response = userController.register(user);
+        ResponseEntity<Object> response = userController.register(user);
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        assertEquals(null, response.getBody());
+        assertEquals("Duplicate user", response.getBody());
     }
 
     @Test
     public void testLogin_UserFound() {
 
+        User user = new User();
         String nationalCode = "1234567890";
         ConfirmationCode confirmationCode = new ConfirmationCode(nationalCode, "1234");
-        when(userService.login(nationalCode)).thenReturn(confirmationCode);
+        when(userService.findByNationalCode(nationalCode)).thenReturn(user);
+        when(userService.login(user)).thenReturn(confirmationCode);
 
-        ResponseEntity<ConfirmationCode> response = userController.login(nationalCode);
+        ResponseEntity<Object> response = userController.login(nationalCode);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(confirmationCode, response.getBody());
@@ -71,22 +74,24 @@ public class UserControllerTest {
     public void testLogin_UserNotFound() {
 
         String nationalCode = "1234567890";
-        when(userService.login(nationalCode)).thenThrow(new UserNotFoundException("user not found"));
+        when(userService.findByNationalCode(nationalCode)).thenThrow(new UserNotFoundException("User not found"));
 
-        ResponseEntity<ConfirmationCode> response = userController.login(nationalCode);
+        ResponseEntity<Object> response = userController.login(nationalCode);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals(null, response.getBody());
+        assertEquals("User not found", response.getBody());
     }
 
     @Test
     public void testConfirmUser_SuccessfulConfirmation() {
 
+        User user = new User();
         ConfirmationCode confirmationCode = new ConfirmationCode("1234567890", "1234");
         UserDTO userDTO = new UserDTO();
-        when(userService.confirmUser(confirmationCode)).thenReturn(userDTO);
+        when(userService.findByNationalCode(confirmationCode.getUserNationalCode())).thenReturn(user);
+        when(userService.confirmUser(user, confirmationCode.getConfirmedCode())).thenReturn(userDTO);
 
-        ResponseEntity<UserDTO> response = userController.confirmUser(confirmationCode);
+        ResponseEntity<Object> response = userController.confirmUser(confirmationCode);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(userDTO, response.getBody());
@@ -96,24 +101,26 @@ public class UserControllerTest {
     public void testConfirmUser_UserNotFound() {
 
         ConfirmationCode confirmationCode = new ConfirmationCode("1234567890", "1234");
-        when(userService.confirmUser(confirmationCode)).thenThrow(new UserNotFoundException("User not found"));
+        when(userService.findByNationalCode(confirmationCode.getUserNationalCode())).thenThrow(new UserNotFoundException("User not found"));
 
-        ResponseEntity<UserDTO> response = userController.confirmUser(confirmationCode);
+        ResponseEntity<Object> response = userController.confirmUser(confirmationCode);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals(null, response.getBody());
+        assertEquals("User not found", response.getBody());
     }
 
     @Test
     public void testConfirmUser_Unauthorized() {
 
+        User user = new User();
         ConfirmationCode confirmationCode = new ConfirmationCode("1234567890", "1234");
-        when(userService.confirmUser(confirmationCode)).thenThrow(new UnauthorizedException("Unauthorized"));
+        when(userService.findByNationalCode(confirmationCode.getUserNationalCode())).thenReturn(user);
+        when(userService.confirmUser(user, confirmationCode.getConfirmedCode())).thenThrow(new UnauthorizedException("Unauthorized"));
 
-        ResponseEntity<UserDTO> response = userController.confirmUser(confirmationCode);
+        ResponseEntity<Object> response = userController.confirmUser(confirmationCode);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        assertEquals(null, response.getBody());
+        assertEquals("Unauthorized", response.getBody());
     }
 
     @Test
@@ -124,7 +131,7 @@ public class UserControllerTest {
         user.setId(userId);
         when(userService.findById(userId)).thenReturn(user);
 
-        ResponseEntity<User> response = userController.findById(userId);
+        ResponseEntity<Object> response = userController.findById(userId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(user, response.getBody());
@@ -136,10 +143,10 @@ public class UserControllerTest {
         long userId = 1L;
         when(userService.findById(userId)).thenThrow(new UserNotFoundException("User not found"));
 
-        ResponseEntity<User> response = userController.findById(userId);
+        ResponseEntity<Object> response = userController.findById(userId);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals(null, response.getBody());
+        assertEquals("User not found", response.getBody());
     }
 
 

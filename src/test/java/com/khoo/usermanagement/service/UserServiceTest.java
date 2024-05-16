@@ -8,12 +8,14 @@ import com.khoo.usermanagement.exception.DuplicateUserException;
 import com.khoo.usermanagement.exception.UnauthorizedException;
 import com.khoo.usermanagement.exception.UserNotFoundException;
 import com.khoo.usermanagement.security.jwt.JwtUtil;
+import com.khoo.usermanagement.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import java.time.LocalDateTime;
+import org.springframework.data.redis.core.RedisTemplate;
+
 import java.util.Date;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,6 +29,9 @@ public class UserServiceTest {
 
     @Mock
     private JwtUtil jwtUtil;
+
+    @Mock
+    private RedisTemplate<Long, User> redisTemplate;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -65,36 +70,24 @@ public class UserServiceTest {
     }
 
     @Test
-    public void testLogin_UserFound() {
+    public void testLogin() {
 
         String nationalCode = "1234567890";
         User mockUser = new User();
         mockUser.setNationalCode(nationalCode);
-        when(userRepository.findByNationalCode(nationalCode)).thenReturn(Optional.of(mockUser));
-
 
         User savedUser = new User();
         savedUser.setNationalCode(mockUser.getNationalCode());
 
         when(userRepository.save(mockUser)).thenReturn(savedUser);
 
-        ConfirmationCode confirmationCode = userService.login(nationalCode);
+        ConfirmationCode confirmationCode = userService.login(mockUser);
 
         assertNotNull(confirmationCode);
         assertFalse(mockUser.isEnable());
         assertNotNull(mockUser.getConfirmedCode());
         assertNotNull(mockUser.getConfirmCodeRegisterTime());
         verify(userRepository, times(1)).save(mockUser);
-    }
-
-    @Test
-    public void testLogin_UserNotFound() {
-
-        String nationalCode = "1234567890";
-        when(userRepository.findByNationalCode(nationalCode)).thenReturn(Optional.empty());
-
-        assertThrows(UserNotFoundException.class, () -> userService.login(nationalCode));
-        verify(userRepository, never()).save(any());
     }
 
     @Test
@@ -107,26 +100,15 @@ public class UserServiceTest {
         user.setEnable(false);
         Date confirmationTime = new Date(System.currentTimeMillis() - 2*60*1000);
         user.setConfirmCodeRegisterTime(confirmationTime);
-        when(userRepository.findByNationalCode(confirmationCode.getUserNationalCode())).thenReturn(Optional.of(user));
         when(userRepository.save(user)).thenReturn(user);
 
         when(jwtUtil.generateToken(user.getNationalCode())).thenReturn("someToken");
 
-        UserDTO userDTO = userService.confirmUser(confirmationCode);
+        UserDTO userDTO = userService.confirmUser(user, confirmationCode.getConfirmedCode());
 
         assertNotNull(userDTO);
         assertTrue(user.isEnable());
         verify(userRepository, times(1)).save(user);
-    }
-
-    @Test
-    public void testConfirmUser_UserNotFound() {
-
-        ConfirmationCode confirmationCode = new ConfirmationCode("1234567890", "1234");
-        when(userRepository.findByNationalCode(confirmationCode.getUserNationalCode())).thenReturn(Optional.empty());
-
-        assertThrows(UserNotFoundException.class, () -> userService.confirmUser(confirmationCode));
-        verify(userRepository, never()).save(any());
     }
 
     @Test
@@ -138,9 +120,8 @@ public class UserServiceTest {
         user.setConfirmedCode("5678"); // Incorrect confirmation code
         user.setEnable(false);
         user.setConfirmCodeRegisterTime(new Date(System.currentTimeMillis() - 2*60*1000));
-        when(userRepository.findByNationalCode(confirmationCode.getUserNationalCode())).thenReturn(Optional.of(user));
 
-        assertThrows(UnauthorizedException.class, () -> userService.confirmUser(confirmationCode));
+        assertThrows(UnauthorizedException.class, () -> userService.confirmUser(user, confirmationCode.getConfirmedCode()));
         assertFalse(user.isEnable());
         verify(userRepository, never()).save(any());
     }
@@ -151,6 +132,7 @@ public class UserServiceTest {
         long userId = 1L;
         User user = new User();
         user.setId(userId);
+        when(userService.readUserFromRedis(userId)).thenReturn(null);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         User foundUser = userService.findById(userId);
@@ -163,6 +145,7 @@ public class UserServiceTest {
     public void testFindById_UserNotFound() {
 
         long userId = 1L;
+        when(userService.readUserFromRedis(userId)).thenReturn(null);
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> userService.findById(userId));
@@ -190,6 +173,4 @@ public class UserServiceTest {
 
         assertThrows(UserNotFoundException.class, () -> userService.findByNationalCode(nationalCode));
     }
-
-
 }

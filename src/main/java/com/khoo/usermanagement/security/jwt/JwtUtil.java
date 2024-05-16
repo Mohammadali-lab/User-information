@@ -42,13 +42,6 @@ public class JwtUtil {
         return createToken(claims, username);
     }
 
-//    public String generateUnlimitedToken(UserDetails userDetails, boolean mobile){
-//        Claims claims = Jwts.claims().setSubject(userDetails.getUsername());
-//        return createUnlimitedToken(claims, userDetails.getUsername(), mobile);
-//    }
-
-
-
     private String createToken(Map<String, Object> claims, String subject) {
         Date expiration = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
         return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
@@ -56,29 +49,12 @@ public class JwtUtil {
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY).compact();
     }
 
-    private String createUnlimitedToken(Map<String, Object> claims, String subject, boolean mobile) {
-        Date expiration;
-        if (mobile) {
-            expiration = new Date(Long.MAX_VALUE);
-        } else {
-            expiration = new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 365);
-//          Long.MAX_VALUE(9,223,372,036,854,775,807) > 1000L * 60 * 60 * 24 * 365(31,536,000,000)
-        }
-        return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(expiration)
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY).compact();
-    }
-
-//    public Boolean validateToken(String token) {
-//        return (!isTokenExpired(token));
-//    }
 
     public boolean validateToken(String token) {
         try {
             Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token);
             return true;
         } catch (SignatureException | MalformedJwtException | ExpiredJwtException | UnsupportedJwtException | IllegalArgumentException ex) {
-            // Handle exception or return false based on your application's logic
             return false;
         }
     }

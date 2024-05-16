@@ -1,6 +1,8 @@
 package com.khoo.usermanagement.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -18,17 +20,19 @@ import java.util.Date;
 @Table(name = "user")
 @Setter
 @Getter
-public class User implements Serializable {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     @Column(name = "created_at")
     @CreationTimestamp
     private Date createdAt;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     @Column(name = "updated_at")
     @UpdateTimestamp
     private Date updatedAt;
@@ -46,6 +50,7 @@ public class User implements Serializable {
     private String nationalCode;
 
     @NotNull
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Column(name = "birth_date", nullable = false)
     private Date birthDate;
 
@@ -58,9 +63,14 @@ public class User implements Serializable {
     @Column(name = "is_enable")
     private boolean isEnable;
 
+    @Column(name = "is_removed")
+    private boolean isRemoved;
+
+    @JsonIgnore
     @Column(name = "confirmed_code")
     private String confirmedCode;
 
+    @JsonIgnore
     @Column(name = "confirm_code_register_time")
     private Date confirmCodeRegisterTime;
 
@@ -72,11 +82,21 @@ public class User implements Serializable {
     @JoinColumn(name = "state_id")
     private State state;
 
+    @JsonProperty("state")
+    public String getStateName() {
+        return state != null ? state.getName() : null;
+    }
+
+    @JsonProperty("city")
+    public String getCityName() {
+        return city != null ? city.getName() : null;
+    }
+
+    @JsonProperty("age")
     public int getAge() {
         Date now = new Date();
         Instant nowInstant = now.toInstant();
         LocalDate nowDate = LocalDate.ofInstant(nowInstant, ZoneId.systemDefault());
         return Period.between(birthDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), nowDate).getYears();
     }
-
 }

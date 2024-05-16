@@ -15,7 +15,7 @@ public interface UserService {
 
     ConfirmationCode register(User user);
 
-    ConfirmationCode login(String nationalCode);
+    ConfirmationCode login(User user);
 
     void logout(String nationalCode);
 
@@ -27,7 +27,9 @@ public interface UserService {
 
     Page<User> findAll(Pageable pageable);
 
-    User update(Long id, User updatedUser);
+    User updateProfile(String nationalCode, User updatedUser);
+
+    User update(Long id, User user);
 
     void delete(Long id);
 
@@ -35,9 +37,9 @@ public interface UserService {
 
     List<Object[]> numberOfUsersPerCityFilteredByAge(int age);
 
-    int numberOfUsersFilteredByAgeAndCity(int age, String cityName);
+    int numberOfUsersFilteredByAgeAndCity(int age, Long cityId);
 
-    UserDTO confirmUser(ConfirmationCode confirmationCode);
+    UserDTO confirmUser(User user, String code);
 
     UserDetails loadUserByUsername(String username);
 }
